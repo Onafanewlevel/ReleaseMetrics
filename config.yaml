@@ -1,0 +1,61 @@
+---
+# Platform Identifiers. Add the project keys for the projects you want to analyze.
+ProjectKeys:
+  SFFAUD: "Salesforce FAU Delivery"
+  SFINGDD: "Salesforce ING Delivery"
+  FRM: "Salesforce FRM Delivery"
+  SFB2BD: "Salesforce B2B Delivery"
+  SFB2CD: "Salesforce B2C Delivery"
+  SFCOM: "Salesforce COM Delivery"
+  SER: "ServiceNow Delivery"
+  PD: "Ari"
+  TD: "Trade Promotion Management Delivery"
+  GPT: "Co-op GPT Delivery"
+  IRP: "Identity Refresh Project"
+  SAPCC: "SAP Concur"
+  SFA: "Successfactors"
+
+# Variables that will be parsed into the Jira query
+QueryFilters:
+  Issue_Type:
+    - "Story"
+    - "Bug"
+  Release_Type:
+    - "Major"
+    - "Minor"
+    - "Patch"
+    - "Empty"
+  Release_Window:
+    - "Planned"
+    - "Unplanned"
+
+# JSON field names. Add the custom fields you want to analyze. (You might have to analyse a full json reponse to get the field name you might need)
+IssueFields:
+  # Issue Type field in the json payload
+  - "issuetype"
+  # Release Type field in the json payload
+  - "customfield_12593"
+  # Planned Unplanned field in the json payload
+  - "customfield_13050"
+
+# Confluence Variables
+Confluence:
+  Report_Page_Id: "3651731517"
+  Report_Space: "ART"
+  Url: "https://fonterra.atlassian.net"
+  Username: "ATLASSIAN_USER"
+  Password: "ATLASSIAN_TOKEN"
+
+# Variables that will be parsed into the table
+TableData:
+  ReleaseType:
+    Major: []
+    Minor: []
+    Patch: []
+    Other: []
+  ReleaseWindow:
+    Planned: []
+    Unplanned: []
+  IssueType:
+    Story: []
+    Bug: []
