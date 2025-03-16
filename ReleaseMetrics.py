@@ -36,7 +36,6 @@ class ReleaseMetrics:
     def build_table(self, table_data):
         for key in table_data.keys():
             table_data[key] = 0
-        print(table_data)
 
         # Build the chain. The order here defines the order in which each segment of the metrics is collected.
         release_type_handler = CountByReleaseTypeHandler()

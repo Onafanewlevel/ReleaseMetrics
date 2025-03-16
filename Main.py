@@ -41,7 +41,12 @@ class Main:
         # --------------------
         # Authenticate the Jira client
         # --------------------
-        jira_client = JiraClient(self.atlassian_url, self.atlassian_username, self.atlassian_token).authenticate()
+        try:
+            jira_client = JiraClient(self.atlassian_url, self.atlassian_username, self.atlassian_token).authenticate()
+        except Exception as e:
+            print(f"Error authenticating the Jira client: {e}")
+            return
+            
 
         # --------------------
         # Initialise the tables
@@ -94,7 +99,11 @@ class Main:
         # --------------------
         # Authenticate the Confluence client
         # --------------------
-        confluence = ConfluenceClient(self.atlassian_url, self.atlassian_username, self.atlassian_token).authenticate()
+        try:
+            confluence = ConfluenceClient(self.atlassian_url, self.atlassian_username, self.atlassian_token).authenticate()
+        except Exception as e:
+            print(f"Error authenticating the Confluence client: {e}")
+            return
 
         # --------------------
         # Post the tables to Confluence
