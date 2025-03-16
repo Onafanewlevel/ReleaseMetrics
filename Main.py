@@ -1,7 +1,8 @@
 import yaml
+from AtlassianService.JiraService import JiraClient
+from AtlassianService.ConfluenceService import ConfluenceClient
 from ReleaseMetrics import ReleaseMetrics
 import pandas as pd
-from AtlassianService.ConfluenceService import ConfluenceClient
 import os
 
 class Main:
@@ -32,11 +33,19 @@ class Main:
         # --------------------
         self.confluence_report_page_id = config['Confluence']['Report_Page_Id']
         self.confluence_report_space = config['Confluence']['Report_Space']
-        self.confluence_url = os.getenv(config['Confluence']['Url'])
-        self.confluence_username = os.getenv(config['Confluence']['Username'])
-        self.confluence_password = os.getenv(config['Confluence']['Password'])
+        self.atlassian_url = config['Confluence']['Url']
+        self.atlassian_username = os.getenv(config['Confluence']['Username'])
+        self.atlassian_token = os.getenv(config['Confluence']['Password'])
 
     def generate_tables(self):
+        # --------------------
+        # Authenticate the Jira client
+        # --------------------
+        jira_client = JiraClient(self.atlassian_url, self.atlassian_username, self.atlassian_token).authenticate()
+
+        # --------------------
+        # Initialise the tables
+        # --------------------
         # Initialize release type table.
         release_type_table = self.table_data['ReleaseType']
         # Initialize the release window table.
@@ -52,19 +61,19 @@ class Main:
             
             # Get counts by release type (Major, Minor, Patch, Other)
             for release in self.release_type:
-                metrics = ReleaseMetrics(key, 'Release', self.issue_fields, release)
+                metrics = ReleaseMetrics(jira_client, key, 'Release', self.issue_fields, release)
                 release_counts = metrics.build_table(release_type_table)
                 release_type_metrics.extend(release_counts)
                 
             # Get planned vs unplanned counts for releases
             for window in self.release_window:
-                metrics = ReleaseMetrics(key, 'Release', self.issue_fields, None, window)
+                metrics = ReleaseMetrics(jira_client, key, 'Release', self.issue_fields, None, window)
                 planned_counts = metrics.build_table(release_window_table)
                 release_window_metrics.extend(planned_counts)
                 
             # Get story and bug counts
             for type in self.issue_type:
-                metrics = ReleaseMetrics(key, type, self.issue_fields, None, None)
+                metrics = ReleaseMetrics(jira_client, key, type, self.issue_fields, None, None)
                 story_counts = metrics.build_table(issue_type_table)
                 issue_type_metrics.extend(story_counts)
         
@@ -82,7 +91,14 @@ class Main:
         self.table['IssueType'] = it_table_df
 
     def post_to_confluence(self):
-        confluence = ConfluenceClient(self.confluence_url, self.confluence_username, self.confluence_password).authenticate()
+        # --------------------
+        # Authenticate the Confluence client
+        # --------------------
+        confluence = ConfluenceClient(self.atlassian_url, self.atlassian_username, self.atlassian_token).authenticate()
+
+        # --------------------
+        # Post the tables to Confluence
+        # --------------------
         confluence.post_confluence_page(self.confluence_report_page_id, self.confluence_report_space, self.table)
 
 if __name__ == "__main__":

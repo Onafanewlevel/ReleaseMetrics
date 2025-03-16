@@ -1,26 +1,18 @@
-from AtlassianService.JiraService import JiraClient
 from ChainOfResponsibility.count_by_release_type import CountByReleaseTypeHandler
 from ChainOfResponsibility.count_by_release_window import CountByReleaseWindowHandler
 from ChainOfResponsibility.count_by_story_bug_type import CountByStoryBugTypeHandler
 from AtlassianService.JQLQuery import JQLQuery
 from AtlassianService.JiraIssues import JiraIssues
-import os
 
 class ReleaseMetrics:
-    def __init__(self, project_key, issue_type, issue_fields, release_type=None, release_window=None):
+    def __init__(self, jira_client, project_key, issue_type, issue_fields, release_type=None, release_window=None):
+        self.jira_client = jira_client
         self.project_key = project_key
         self.issue_type = issue_type
         self.issue_fields = issue_fields
         self.release_type = release_type
         self.release_window = release_window
 
-        # Authenticate Jira client
-        self.jira_client = JiraClient(
-            "https://jira.atlassian.com",
-            os.getenv("JIRA_USERNAME"),
-            os.getenv("JIRA_PASSWORD")
-        ).authenticate()
-    
     def _get_count_by_release_window(self):
         query = JQLQuery(
             self.project_key,
