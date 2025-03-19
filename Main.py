@@ -1,8 +1,7 @@
 import os
-import pandas as pd
 import yaml
 import requests
-from collections import defaultdict
+from Tables import Tables
 from AtlassianService.JiraService import JiraClient
 from AtlassianService.ConfluenceService import ConfluenceClient
 from ReleaseMetrics import ReleaseMetrics
@@ -33,9 +32,9 @@ class Main:
         # --------------------
         # Initialise the table
         # --------------------
-        final_table = {key: [] for key in self.project_keys}
-        for key in final_table:
-            final_table[key] = []
+        self.final_table = {key: [] for key in self.project_keys}
+        for key in self.final_table:
+            self.final_table[key] = []
 
         # --------------------
         # Initialise the Confluence client and variables
@@ -60,54 +59,43 @@ class Main:
                 self.atlassian_token)
         except requests.exceptions.HTTPError as http_err:
             print(f"Error authenticating the Jira client: {http_err}")
+            raise
         except requests.exceptions.ConnectionError as conn_err:
             print(f"Error connecting to Jira client {conn_err}")
+            raise
         except requests.exceptions.Timeout as time_err:
             print(f"Error: Connection timeout {time_err}")
-            return
+            raise
 
-        # --------------------
-        # Initialise the tables
-        # --------------------
-        # # Initialize release type table.
-        # release_type_table = self.table_data['ReleaseType']
-        # print(release_type_table)
-        # # Initialize the release window table.
-        # release_window_table = self.table_data['ReleaseWindow']
-        # print(release_window_table)
-        # # Initialize the issue type table.
-        # issue_type_table = self.table_data['IssueType']
-        # print(issue_type_table)
-        # Loop through each project key and accumulate metrics from different queries.
         for key in self.project_keys.keys():
+            self.final_table[key] = {
+                'Release Type': {},
+                'Release Window': {},
+                'Issue Type': {}
+            }
+
             # Get counts by release type (Major, Minor, Patch, Other)
             for release in self.release_type:
-                metrics = ReleaseMetrics(jira_client, key, 'Release', self.issue_fields, release)
-                release_counts = metrics.build_table(self.table_data)
-                self.final_table[key][release] = release_counts
+                release_type_count = ReleaseMetrics(jira_client, key, 'Release', self.issue_fields, release)
+                self.final_table[key]['Release Type'][release] = release_type_count.jira_issues_count
             # Get planned vs unplanned counts for releases
             for window in self.release_window:
-                metrics = ReleaseMetrics(jira_client, key, 'Release', self.issue_fields, None, window)
-                planned_counts = metrics.build_table(self.table_data)
-                self.final_table[key][window] = planned_counts
+                planned_unplanned_count = ReleaseMetrics(jira_client, key, 'Release', self.issue_fields, None, window)
+                self.final_table[key]['Release Window'][window] = planned_unplanned_count.jira_issues_count
             # Get story and bug counts
             for i_type in self.issue_type:
-                metrics = ReleaseMetrics(jira_client, key, i_type, self.issue_fields, None, None)
-                story_counts = metrics.build_table(self.table_data)
-                self.final_table[key][i_type] = story_counts
+                issue_type_count = ReleaseMetrics(jira_client, key, i_type, self.issue_fields, None, None)
+                i_type = 'Other' if i_type == 'Empty' else i_type
+                self.final_table[key]['Issue Type'][i_type] = issue_type_count.jira_issues_count
 
-            # Add project name and its metrics to the final table.
-            
+        # --------------------
+        # Build the tables using the Chain of Responsibility pattern
+        # --------------------
+        confluence_content = Tables(self.project_keys, self.final_table).get_content()
 
-        rt_table_df = pd.DataFrame(release_type_table, index=self.project_keys.values()).transpose()
-        rw_table_df = pd.DataFrame(release_window_table, index=self.project_keys.values()).transpose()
-        it_table_df = pd.DataFrame(issue_type_table, index=self.project_keys.values()).transpose()
+        return confluence_content
 
-        self.table['ReleaseType'] = rt_table_df
-        self.table['ReleaseWindow'] = rw_table_df
-        self.table['IssueType'] = it_table_df
-
-    def post_to_confluence(self):
+    def post_to_confluence(self, confluence_content):
         """
         This method posts to confluecne
         """
@@ -130,9 +118,9 @@ class Main:
         # --------------------
         # Post the tables to Confluence
         # --------------------
-        confluence.post_confluence_page(self.confluence_report_page_id, self.confluence_report_space, self.table)
+        confluence.post_confluence_page(self.confluence_report_page_id, self.confluence_report_space, confluence_content)
 
 if __name__ == "__main__":
     main = Main()
-    main.generate_tables()
-    main.post_to_confluence()
+    content = main.generate_tables()
+    main.post_to_confluence(content)

@@ -1,12 +1,11 @@
+import requests
+
 """
 release_metrics
 
 Returns:
     _type_: _description_
 """
-from collections import defaultdict
-from ChainOfResponsibility.CountByReleaseType import CountByReleaseTypeHandler
-from ChainOfResponsibility.CountByRelease import CountByReleaseWindowHandler
 from AtlassianService.JQLQuery import JQLQuery
 
 class ReleaseMetrics:
@@ -62,43 +61,15 @@ class ReleaseMetrics:
         Returns:
             int: The count of Jira issues filtered by release window.
         """
-        query = JQLQuery(
-            self.project_key,
-            self.issue_type,
-            self.issue_fields,
-            self.release_type,
-            self.release_window
-        ).get_jql_query()
-        return self.jira_client.get_jira_issues_count(query)
-
-    def build_table(self, table_data):
-        """
-        Build the release metrics table using the Chain of Responsibility pattern.
-
-        The method initializes the handlers for different segments of the metrics and links them
-        together. It then starts the processing chain, updating the provided table_data with
-        computed counts.
-
-        Args:
-            table_data (dict): A dictionary representing the table structure where keys represent
-                               different segments of the metrics and their associated counts.
-
-        Returns:
-            dict: The updated table_data with computed metrics.
-        """
-        # Initialize the table data with default values.
-        table_data = defaultdict(int)
-
-        # ------------------------
-        # Build the chain.
-        # The order here defines the order in which each segment of the metrics is collected.
-        # ------------------------
-        release_type_handler = CountByReleaseTypeHandler()
-        release_window_handler = CountByReleaseWindowHandler()
-        story_bug_handler = CountByReleaseTypeHandler()
-        # Link the handlers
-        release_type_handler.set_successor(release_window_handler)
-        release_window_handler.set_successor(story_bug_handler)
-        # Start the chain with an empty table list.
-        final_table = release_type_handler.handle(self, table_data)
-        return final_table
+        try:
+            query = JQLQuery(
+                self.project_key,
+                self.issue_type,
+                self.issue_fields,
+                self.release_type,
+                self.release_window
+            ).get_jql_query()
+            return self.jira_client.get_jira_issues_count(query)
+        except requests.exceptions.HTTPError as http_error:
+            print(f"Error getting Jira issues count: {http_error}")
+            return None

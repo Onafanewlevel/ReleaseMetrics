@@ -50,7 +50,7 @@ class JQLQuery:
             f'(resolved > startOfMonth() AND resolved < endOfMonth())'
         )
         if self.release_type:
-            return f'{base_query} AND "Release Type[Dropdown]" = "{self.release_type}"'
+            return f'{base_query} AND "Release Type[Dropdown]" = {self.release_type}'
         if self.release_window:
             return f'{base_query} AND "Release Window[Dropdown]" = "{self.release_window}"'
         return base_query
