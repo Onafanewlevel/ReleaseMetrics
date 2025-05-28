@@ -14,6 +14,7 @@ ProjectKeys:
   IRP: "Identity Refresh Project"
   SAPCC: "SAP Concur"
   SFA: "Successfactors"
+  ARB: "Ariba"
 
 # Variables that will be parsed into the Jira query
 QueryFilters:
@@ -24,22 +25,22 @@ QueryFilters:
     - "Major"
     - "Minor"
     - "Patch"
-    - "Empty"
+    - "Other"
   Release_Window:
     - "Planned"
     - "Unplanned"
 
 # JSON field names. Add the custom fields you want to analyze. (You might have to analyse a full json reponse to get the field name you might need)
-IssueFields:
-  # Issue Type field in the json payload
-  - "issuetype"
-  # Release Type field in the json payload
-  - "customfield_12593"
-  # Planned Unplanned field in the json payload
-  - "customfield_13050"
+# IssueFields:
+#   # Issue Type field in the json payload
+#   - "issuetype"
+#   # Release Type field in the json payload
+#   - "customfield_12593"
+#   # Planned Unplanned field in the json payload
+#   - "customfield_13050"
 
 # Confluence Variables
-Confluence:
+AtlassianVariables:
   Report_Page_Id: "3651731517"
   Report_Space: "ART"
   Url: "https://fonterra.atlassian.net"
@@ -47,15 +48,15 @@ Confluence:
   Password: "ATLASSIAN_TOKEN"
 
 # Variables that will be parsed into the table
-TableData:
-  ReleaseType:
-    Major: []
-    Minor: []
-    Patch: []
-    Other: []
-  ReleaseWindow:
-    Planned: []
-    Unplanned: []
-  IssueType:
-    Story: []
-    Bug: []
+# TableData:
+  # ReleaseType:
+  #   Major: []
+  #   Minor: []
+  #   Patch: []
+  #   Other: []
+  # ReleaseWindow:
+  #   Planned: []
+  #   Unplanned: []
+  # IssueType:
+  #   Story: []
+  #   Bug: []

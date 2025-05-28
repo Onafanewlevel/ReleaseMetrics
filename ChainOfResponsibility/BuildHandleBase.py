@@ -56,4 +56,3 @@ class BuildHandler:
         if self._successor:
             return self._successor.handle(project_keys, table)
         return self.confluence_content
-

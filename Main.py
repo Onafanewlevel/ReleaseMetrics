@@ -27,7 +27,6 @@ class Main:
         self.release_type = config['QueryFilters']['Release_Type']
         self.release_window = config['QueryFilters']['Release_Window']
         self.issue_fields = config['IssueFields']
-        self.table_data = config['TableData']
 
         # --------------------
         # Initialise the table
@@ -91,7 +90,7 @@ class Main:
         # --------------------
         # Build the tables using the Chain of Responsibility pattern
         # --------------------
-        confluence_content = Tables(self.project_keys, self.final_table).get_content()
+        confluence_content = Tables(self.project_keys, self.final_table).get_content
 
         return confluence_content
 
